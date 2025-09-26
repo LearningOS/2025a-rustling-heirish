@@ -2,8 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
-
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
 use std::vec::*;
@@ -70,13 +68,49 @@ impl<T> LinkedList<T> {
         }
     }
 	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
+    where 
+        T:std::cmp::PartialOrd,
 	{
-		//TODO
-		Self {
+        if list_a.start.is_none() {
+            return list_b
+        } else if list_b.start.is_none() {
+            return list_a
+        }
+
+		let mut ret = Self {
             length: 0,
             start: None,
             end: None,
+        };
+
+        let mut ptr_a= list_a.start;
+        let mut ptr_b= list_b.start;
+
+        let mut add_node = |node:NonNull<Node<T>>|{
+            let next = unsafe{(*node.as_ptr()).next.take()};
+            match ret.end {
+                None => ret.start = Some(node),
+                Some(end) => unsafe{(*end.as_ptr()).next = Some(node)} 
+            }
+            ret.end = Some(node);
+            ret.length += 1;
+            next
+        };
+        while let (Some(a), Some(b)) = (ptr_a, ptr_b){
+            if unsafe {(*a.as_ptr()).val <= (*b.as_ptr()).val} {
+                ptr_a = add_node(a);
+            } else {
+                ptr_b = add_node(b);
+            }
         }
+
+        while let Some(a) = ptr_a {
+            ptr_a = add_node(a);
+        }
+        while let Some(b) = ptr_b {
+            ptr_b = add_node(b);
+        }
+        ret
 	}
 }
 

@@ -2,8 +2,6 @@
 	queue
 	This question requires you to use queues to implement the functionality of the stac
 */
-// I AM NOT DONE
-
 #[derive(Debug)]
 pub struct Queue<T> {
     elements: Vec<T>,
@@ -52,9 +50,14 @@ impl<T> Default for Queue<T> {
     }
 }
 
+enum StackMode {
+    DATA_IN_Q1,
+    DATA_IN_Q2 
+}
 pub struct myStack<T>
 {
 	//TODO
+    mode:StackMode,
 	q1:Queue<T>,
 	q2:Queue<T>
 }
@@ -62,20 +65,47 @@ impl<T> myStack<T> {
     pub fn new() -> Self {
         Self {
 			//TODO
+            mode:StackMode::DATA_IN_Q1,
 			q1:Queue::<T>::new(),
 			q2:Queue::<T>::new()
         }
     }
     pub fn push(&mut self, elem: T) {
         //TODO
+        match self.mode {
+            StackMode::DATA_IN_Q1 => self.q1.enqueue(elem),
+            StackMode::DATA_IN_Q2 => self.q2.enqueue(elem)
+        }
     }
-    pub fn pop(&mut self) -> Result<T, &str> {
+    pub fn pop(&mut self) -> Result<T, &str> 
+    where 
+    T:std::fmt::Display,
+    {
         //TODO
-		Err("Stack is empty")
+        let pop_data = |from:&mut Queue<T>, to:&mut Queue<T>|{
+            while from.size() > 1 {
+                if let Ok(value) = from.dequeue() {
+                    to.enqueue(value);
+                } 
+            }
+            from.dequeue().map_err(|_|{"Stack is empty"})
+        };
+        
+        let mut ret = Err("Stack is empty");
+        match self.mode {
+            StackMode::DATA_IN_Q1 => {
+                ret = pop_data(&mut self.q1, &mut self.q2);
+                self.mode= StackMode::DATA_IN_Q2;
+            }
+            StackMode::DATA_IN_Q2 => {
+                ret = pop_data(&mut self.q2, &mut self.q1);
+                self.mode= StackMode::DATA_IN_Q1;
+            }
+        }
+        ret
     }
     pub fn is_empty(&self) -> bool {
-		//TODO
-        true
+        self.q1.is_empty() && self.q2.is_empty()
     }
 }
 

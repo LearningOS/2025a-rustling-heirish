@@ -2,8 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
-
 use std::cmp::Ord;
 use std::default::Default;
 
@@ -38,6 +36,19 @@ where
 
     pub fn add(&mut self, value: T) {
         //TODO
+        self.items.push(value);
+        self.count += 1;
+
+        let mut index = self.count;
+        while index > 1 {
+            let parent_index = self.parent_idx(index);
+            if (self.comparator)(&self.items[parent_index], &self.items[index]) {
+                break;
+            } else {
+                self.items.swap(parent_index, index);
+                index = parent_index;
+            }
+        }
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
@@ -58,7 +69,18 @@ where
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
         //TODO
-		0
+        let left_child_index = self.left_child_idx(idx);
+        let right_child_index = self.right_child_idx(idx);
+
+        if self.count < right_child_index {
+            return left_child_index;
+        } else {
+            if (self.comparator)(&self.items[left_child_index], &self.items[right_child_index]) {
+                return left_child_index;
+            } else {
+                return right_child_index;
+            }
+        }
     }
 }
 
@@ -85,7 +107,26 @@ where
 
     fn next(&mut self) -> Option<T> {
         //TODO
-		None
+        if self.count == 0 {
+            return None;
+        }
+
+        let top = self.items.swap_remove(1);
+        self.count -= 1;
+
+        if self.count > 0 {
+            let mut index = 1;
+            while self.children_present(index) {
+                let smaller_child = self.smallest_child_idx(index);
+                if (self.comparator)(&self.items[index], &self.items[smaller_child]) {
+                    break;
+                } else {
+                    self.items.swap(index, smaller_child);
+                    index = smaller_child;
+                }
+            }
+        }
+        Some(top)
     }
 }
 
